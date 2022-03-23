@@ -4,10 +4,6 @@ const fs = require('fs')
 
 const server = new Server()
 
-server.listen(3000, () => {
-  console.log(`Server is running on http://localhost:3000`)
-})
-
 server.on('request', async (req, res) => {
   switch (req.url) {
     case '/': {
@@ -31,15 +27,33 @@ server.on('request', async (req, res) => {
       res.writeHead(200, {
         'content-type': 'text/html'
       })
-      await delay(3000)
-      res.end(`
-        <b>Hello, ${(new Date()).toISOString()}</b>
-      `)
+      for (let iter = 1; iter <= 10; iter++) {
+        res.write(`<div>Hello, ${(new Date()).toISOString()}</div>`)
+        await delay(1000)
+      }
+      res.end()
       break
     }
   }
 })
 
-setTimeout(() => {
+function startServer() {
+  server.listen(3000, () => {
+    console.log(`Server is running on http://localhost:3000`)
+  })
+}
+
+function closeServer() {
+  console.log('Server is attempted to stop')
   server.close(() => console.log('Server closed'))
+}
+
+for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) {
+  process.on(signal, closeServer)
+}
+
+startServer()
+
+setTimeout(() => {
+  // closeServer()
 }, 1000 * 3)
